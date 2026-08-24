@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # UnitVault — Your unit notes, vaulted.
 
 ## Quick Setup
@@ -42,3 +43,8 @@ npx vercel
 ```
 
 See full docs in the project files.
+=======
+# UnitVault
+ 
+Find, preview, and download university notes and past papers organised by unit code.
+>>>>>>> 5113864fdf36cbd64828095af63ba032c22376f8
