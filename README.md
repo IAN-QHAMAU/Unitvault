@@ -9,9 +9,9 @@ If you’ve spent more than a week in a university, you know the drill:
 1. Every semester starts with zero organized materials.
 2. A random PDF gets dropped into a chaotic WhatsApp group in Week 3.
 3. Fast forward to exam week: you scroll up for 20 minutes, tap download, and hit the dreaded *File no longer exists on local storage* error.
-4. You text five different people asking *"Anyone with SMA 3104 Cat/notes?"*.
+4. You text five different people asking *"Anyone with SMA 3104 paper/notes?"*.
 
-**UnitVault** was built because We shouldn't have to hunt down basic past papers like we're solving a crime every single continuous assessment test.
+**UnitVault** was built because we shouldn't have to hunt down basic past papers like we're solving a crime every single continuous assessment test.
 
 It’s a zero-fluff, highly organized  where notes and past papers are indexed by **Programme → Year → Unit Code**. You find your unit, preview the PDF directly in your browser, and download it instantly. Everything you save stays on your profile so you never start from scratch again.
 
