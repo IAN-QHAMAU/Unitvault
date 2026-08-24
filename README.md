@@ -43,7 +43,7 @@ unitvault-app/
 ├── supabase/
 │   └── schema.sql             # Database tables, policies, and storage setup
 └── public/                    # Static brand assets and icons
-
-### Back the Build ⭐️
+```
+# Back the Build ⭐️
 
 *UnitVault · Kwani me hudoo.*
