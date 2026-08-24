@@ -1,7 +1,6 @@
 # UnitVault 🛡️
 
-> *"Couldn't download.Ask the sender to resend."* The exact moment you realize your CAT/EXAM is in two hours, the WhatsApp group is buried under 400 unread messages and the person who sent the paper you have to dm them to get the paper.
-
+> *"Couldn't download.Ask the original sender to resend.."* The line that blocks you whether you're trying to start an assignment on a Tuesday night, verify lecture notes right after class, or review a past paper before a test.
 ---
 
 ### The Reality
@@ -10,15 +9,15 @@ If you’ve spent more than a week in a university, you know the drill:
 1. Every semester starts with zero organized materials.
 2. A random PDF gets dropped into a chaotic WhatsApp group in Week 3.
 3. Fast forward to exam week: you scroll up for 20 minutes, tap download, and hit the dreaded *File no longer exists on local storage* error.
-4. You text five different people asking *"Anyone with BUS 201 notes?"* while hoping someone replies before midnight.
+4. You text five different people asking *"Anyone with SMA 3104 Cat/notes?"*.
 
-**UnitVault** was built because *kwani me hudoo?* We shouldn't have to hunt down basic past papers like we're solving a crime every single continuous assessment test.
+**UnitVault** was built because We shouldn't have to hunt down basic past papers like we're solving a crime every single continuous assessment test.
 
-It’s a zero-fluff, highly organized repository where notes and past papers are indexed by **Programme → Year → Unit Code**. You find your unit, preview the PDF directly in your browser, and download it instantly. Everything you save stays on your profile so you never start from scratch again.
+It’s a zero-fluff, highly organized  where notes and past papers are indexed by **Programme → Year → Unit Code**. You find your unit, preview the PDF directly in your browser, and download it instantly. Everything you save stays on your profile so you never start from scratch again.
 
 ---
 
-### Repo Architecture & Anatomy
+### Repo Architecture
 
 Built with Next.js (App Router), TypeScript, and Supabase:
 
@@ -46,9 +45,5 @@ unitvault-app/
 └── public/                    # Static brand assets and icons
 
 ### Back the Build ⭐️
-
-If you like the architecture , tap the **Star** button at the top right. 
-
-Got ideas for OCR search, upvoting notes, or auto-generating revision decks? PRs and issues are welcome let's keep building.
 
 *UnitVault · Kwani me hudoo.*
