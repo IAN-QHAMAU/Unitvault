@@ -23,10 +23,14 @@ export async function POST(request: NextRequest) {
     const file = formData.get('file') as File | null
 
     if (!unitId || !title || !resourceType || !file) {
-      return NextResponse.json({ error: 'Unit, title, resource type and file are required' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Unit, title, resource type and file are required' },
+        { status: 400 }
+      )
     }
 
     const supabase = await createAdminClient()
+
     const ext = file.name.split('.').pop() || 'pdf'
     const filePath = `${unitId}/${Date.now()}.${ext}`
     const fileBuffer = Buffer.from(await file.arrayBuffer())
@@ -54,9 +58,9 @@ export async function POST(request: NextRequest) {
         file_url: publicUrlData.publicUrl,
         file_path: filePath,
         resource_type: resourceType,
-      })
+      } as any)
       .select('*')
-      .single()
+      .single() as any
 
     if (resourceErr) {
       return NextResponse.json({ error: resourceErr.message }, { status: 400 })
@@ -78,23 +82,27 @@ export async function DELETE(request: NextRequest) {
     }
 
     const { id } = await request.json()
+
     if (!id) {
       return NextResponse.json({ error: 'Resource id is required' }, { status: 400 })
     }
 
     const supabase = await createAdminClient()
+
     const { data: resource, error: resourceErr } = await supabase
       .from('resources')
       .select('file_path')
       .eq('id', id)
-      .maybeSingle()
+      .maybeSingle() as any
 
     if (resourceErr) {
       return NextResponse.json({ error: resourceErr.message }, { status: 400 })
     }
 
     if (resource?.file_path) {
-      await supabase.storage.from('unit-vault-materials').remove([resource.file_path])
+      await supabase.storage
+        .from('unit-vault-materials')
+        .remove([resource.file_path])
     }
 
     const { error } = await supabase.from('resources').delete().eq('id', id)
