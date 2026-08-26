@@ -37,24 +37,24 @@ Built with Next.js (App Router), TypeScript, and Supabase:
 unitvault-app/
 ├── src/
 │   ├── app/
-│   │   ├── admin/              # Password-protected admin suite (login & dashboard)
-│   │   ├── api/admin/          # API routes for units, resources, and auth
-│   │   ├── auth/               # Student authentication & callback handling
-│   │   ├── dashboard/          # Student portal for saved resources
-│   │   ├── vault/[courseCode]/ # Dynamic course view (notes & past papers)
-│   │   ├── HomeClient.tsx      # Programme → Year grouped directory
-│   │   ├── layout.tsx          # Root app layout & global providers
-│   │   └── page.tsx            # Homepage entry route
+│   │   ├── admin/              
+│   │   ├── api/admin/ 
+│   │   ├── auth/               
+│   │   ├── dashboard/          
+│   │   ├── vault/[courseCode]/
+│   │   ├── HomeClient.tsx    
+│   │   ├── layout.tsx          
+│   │   └── page.tsx     
 │   ├── components/
-│   │   ├── layout/             # Navigation bar & header elements
-│   │   └── vault/              # Course Cards, Resource Cards & Search Filter
+│   │   ├── layout/            
+│   │   └── vault/              
 │   └── lib/
-│       ├── supabase/           # Client, Server, and Database TypeScript types
-│       ├── adminAuth.ts        # Admin session security helper
-│       └── utils.ts            # Shared UI helpers
+│       ├── supabase/           
+│       ├── adminAuth.ts  
+│       └── utils.ts 
 ├── supabase/
-│   └── schema.sql              # Database tables, policies, and storage setup
-└── public/                     # Static brand assets and icons
+│   └── schema.sql             
+└── public/           
 ```
  
 ---
