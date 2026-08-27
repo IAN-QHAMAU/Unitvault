@@ -31,7 +31,7 @@ export function DashboardClient({ user, savedResources }: DashboardClientProps) 
           </span>
         </div>
         <p className="text-[#64748B] text-sm">
-          Your saved resources — ready for CAT season.
+          Your saved resources ready for CAT season.
         </p>
       </div>
 
