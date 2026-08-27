@@ -47,7 +47,7 @@ export function VaultExplorerClient({
           Nothing vaulted for {courseCode} yet
         </h3>
         <p className="text-sm text-[#64748B] max-w-xs mb-6">
-          Be the first to plug your class. Check back soon — the admin will upload materials here.
+          Be the first to plug your class. Check back soon the admin will upload materials here.
         </p>
         <Link
           href="/"
