@@ -1,25 +1,29 @@
 import { requireAdmin } from '@/lib/adminAuth'
 import { createAdminClient } from '@/lib/supabase/server'
 import { AdminDashboardClient } from './AdminDashboardClient'
-import { Shield, LogOut } from 'lucide-react'
+import { Shield } from 'lucide-react'
 import Link from 'next/link'
 import { AdminSignOutButton } from './AdminSignOutButton'
 
 export default async function AdminDashboardPage() {
   await requireAdmin()
 
+  // createAdminClient now uses service role directly — no session dependency
   const supabase = await createAdminClient()
 
   const [
     { data: units },
     { data: resources },
-    { count: userCount },
     { count: savedCount },
   ] = await Promise.all([
     supabase.from('units').select('*').order('code'),
-    supabase.from('resources').select('*, units(code, name)').order('created_at', { ascending: false }),
-    supabase.from('saved_resources').select('*', { count: 'exact', head: true }),
-    supabase.from('saved_resources').select('*', { count: 'exact', head: true }),
+    supabase
+      .from('resources')
+      .select('*, units(code, name)')
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('saved_resources')
+      .select('*', { count: 'exact', head: true }),
   ])
 
   return (
@@ -62,7 +66,10 @@ export default async function AdminDashboardPage() {
             { label: 'Total saves', value: savedCount ?? 0 },
             { label: 'Storage', value: 'Supabase' },
           ].map((stat) => (
-            <div key={stat.label} className="bg-[#1E293B] border border-slate-700 rounded-xl p-5">
+            <div
+              key={stat.label}
+              className="bg-[#1E293B] border border-slate-700 rounded-xl p-5"
+            >
               <div className="text-2xl font-bold text-white">{stat.value}</div>
               <div className="text-sm text-slate-400 mt-1">{stat.label}</div>
             </div>

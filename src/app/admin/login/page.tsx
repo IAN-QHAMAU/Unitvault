@@ -26,7 +26,9 @@ export default async function AdminLoginPage() {
 
         <div className="bg-[#1E293B] border border-slate-700 rounded-2xl p-8">
           <h1 className="text-xl font-bold text-white mb-1">Admin access</h1>
-          <p className="text-sm text-slate-400 mb-6">Enter your admin password to continue.</p>
+          <p className="text-sm text-slate-400 mb-6">
+            Enter your email and admin password to continue.
+          </p>
           <AdminLoginClient />
         </div>
 

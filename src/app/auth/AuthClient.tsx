@@ -15,6 +15,16 @@ export function AuthClient() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
+  // Always use the production URL for email redirects
+  const getRedirectUrl = () => {
+    if (typeof window === 'undefined') return '/auth/callback'
+    const isProd = window.location.hostname !== 'localhost'
+    const base = isProd
+      ? 'https://unit-vault.vercel.app'
+      : window.location.origin
+    return `${base}/auth/callback`
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -25,14 +35,16 @@ export function AuthClient() {
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+        options: {
+          emailRedirectTo: getRedirectUrl(),
+        },
       })
       if (error) setError(error.message)
       else setSuccess('Check your email for a confirmation link.')
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) setError(error.message)
-      else window.location.href = '/dashboard'
+      else window.location.href = '/'
     }
     setLoading(false)
   }
@@ -46,6 +58,9 @@ export function AuthClient() {
         <div>
           <p className="font-semibold text-[#0F172A]">Check your inbox</p>
           <p className="text-sm text-[#64748B] mt-1">{success}</p>
+          <p className="text-xs text-slate-400 mt-2">
+            Click the link in the email.
+          </p>
         </div>
       </div>
     )

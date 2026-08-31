@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Loader2, Eye, EyeOff } from 'lucide-react'
 
 export function AdminLoginClient() {
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [show, setShow] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -17,22 +18,41 @@ export function AdminLoginClient() {
     const res = await fetch('/api/admin/auth', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password }),
+      body: JSON.stringify({ email, password }),
     })
+
+    const data = await res.json()
 
     if (res.ok) {
       window.location.href = '/admin/dashboard'
     } else {
-      setError('Incorrect password. Try again.')
+      setError(data.error || 'Access denied. Try again.')
       setLoading(false)
     }
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Email */}
+      <div className="space-y-1.5">
+        <label className="text-sm font-semibold text-slate-300" htmlFor="email">
+          Email
+        </label>
+        <input
+          id="email"
+          type="email"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="your@email.com"
+          className="w-full px-3 py-2.5 text-sm bg-[#0F172A] border border-slate-700 rounded-lg text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/50 focus:border-[#1E3A8A] transition-all"
+        />
+      </div>
+
+      {/* Password */}
       <div className="space-y-1.5">
         <label className="text-sm font-semibold text-slate-300" htmlFor="password">
-          Password
+          Admin password
         </label>
         <div className="relative">
           <input
@@ -65,7 +85,10 @@ export function AdminLoginClient() {
         disabled={loading}
         className="w-full py-3 bg-[#1E3A8A] text-white rounded-xl font-semibold text-sm hover:bg-[#1E3A8A]/90 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
       >
-        {loading ? <><Loader2 size={16} className="animate-spin" /> Verifying...</> : 'Enter admin panel'}
+        {loading
+          ? <><Loader2 size={16} className="animate-spin" /> Verifying...</>
+          : 'Enter admin panel'
+        }
       </button>
     </form>
   )
