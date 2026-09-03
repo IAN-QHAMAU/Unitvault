@@ -16,46 +16,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const formData = await request.formData()
-    const unitId = String(formData.get('unitId') || '').trim()
-    const title = String(formData.get('title') || '').trim()
-    const resourceType = String(formData.get('resourceType') || '').trim()
-    const file = formData.get('file') as File | null
+    const { unitId, title, resourceType, fileUrl, filePath } = await request.json()
 
-    if (!unitId || !title || !resourceType || !file) {
+    if (!unitId || !title || !resourceType || !fileUrl || !filePath) {
       return NextResponse.json(
-        { error: 'Unit, title, resource type and file are required' },
+        { error: 'Unit, title, resource type, file URL, and file path are required' },
         { status: 400 }
       )
     }
 
     const supabase = await createAdminClient()
 
-    const ext = file.name.split('.').pop() || 'pdf'
-    const filePath = `${unitId}/${Date.now()}.${ext}`
-    const fileBuffer = Buffer.from(await file.arrayBuffer())
-
-    const { error: uploadErr } = await supabase.storage
-      .from('unit-vault-materials')
-      .upload(filePath, fileBuffer, {
-        contentType: file.type || 'application/pdf',
-        upsert: false,
-      })
-
-    if (uploadErr) {
-      return NextResponse.json({ error: uploadErr.message }, { status: 400 })
-    }
-
-    const { data: publicUrlData } = supabase.storage
-      .from('unit-vault-materials')
-      .getPublicUrl(filePath)
-
     const { data: resource, error: resourceErr } = await supabase
       .from('resources')
       .insert({
         unit_id: unitId,
         title,
-        file_url: publicUrlData.publicUrl,
+        file_url: fileUrl,
         file_path: filePath,
         resource_type: resourceType,
       } as any)
@@ -69,7 +46,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true, resource })
   } catch (error: any) {
     return NextResponse.json(
-      { error: error?.message || 'Unexpected server error while uploading resource' },
+      { error: error?.message || 'Unexpected server error while saving resource metadata' },
       { status: 500 }
     )
   }

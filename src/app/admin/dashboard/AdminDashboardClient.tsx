@@ -7,6 +7,7 @@ import {
   Loader2, CheckCircle, X, GraduationCap
 } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
+import { createClient } from '@/lib/supabase/client'
 import type { Resource, ResourceType, Unit } from '@/lib/supabase/types'
 
 interface AdminDashboardClientProps {
@@ -354,19 +355,54 @@ function ResourcesTab({
     setError('')
 
     try {
-      const formData = new FormData()
-      formData.append('unitId', unitId)
-      formData.append('title', title.trim())
-      formData.append('resourceType', resourceType)
-      formData.append('file', file)
+      const supabase = createClient()
 
+      // 1. Upload file directly from browser to Supabase Storage
+      const ext = file.name.split('.').pop() || 'pdf'
+      const filePath = `${unitId}/${Date.now()}.${ext}`
+
+      const { error: uploadErr } = await supabase.storage
+        .from('unit-vault-materials')
+        .upload(filePath, file, {
+          contentType: file.type || 'application/pdf',
+          upsert: false,
+        })
+
+      if (uploadErr) {
+        throw new Error(`Storage upload failed: ${uploadErr.message}`)
+      }
+
+      // 2. Retrieve public URL
+      const { data: publicUrlData } = supabase.storage
+        .from('unit-vault-materials')
+        .getPublicUrl(filePath)
+
+      // 3. Post metadata JSON to the API route
       const response = await fetch('/api/admin/resources', {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          unitId,
+          title: title.trim(),
+          resourceType,
+          fileUrl: publicUrlData.publicUrl,
+          filePath,
+        }),
       })
 
+      if (!response.ok) {
+        const resultText = await response.text()
+        let errorMessage = 'Upload failed'
+        try {
+          const parsed = JSON.parse(resultText)
+          errorMessage = parsed.error || errorMessage
+        } catch {
+          errorMessage = resultText || errorMessage
+        }
+        throw new Error(errorMessage)
+      }
+
       const result = await response.json()
-      if (!response.ok) throw new Error(result.error || 'Upload failed')
 
       setResources((prev) => [{ ...result.resource, unit: selectedUnit }, ...prev])
       setUploadSuccess(true)
@@ -401,7 +437,7 @@ function ResourcesTab({
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-lg font-bold text-white">All resources</h2>
+          <h2 className="text-lg font-bold text-[#FFFFFF]">All resources</h2>
           <p className="text-sm text-slate-500 mt-0.5">
             {resources.length} resource{resources.length !== 1 ? 's' : ''} uploaded
           </p>
