@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import { createAdminClient } from '@/lib/supabase/server'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 async function requireAdminRequest() {
   const cookieStore = await cookies()

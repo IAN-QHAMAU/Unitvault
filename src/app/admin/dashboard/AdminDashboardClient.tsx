@@ -357,7 +357,7 @@ function ResourcesTab({
     try {
       const supabase = createClient()
 
-      // 1. Upload file directly from browser to Supabase Storage
+      // 1. Upload file DIRECTLY from browser to Supabase Storage (bypasses Vercel API limits)
       const ext = file.name.split('.').pop() || 'pdf'
       const filePath = `${unitId}/${Date.now()}.${ext}`
 
@@ -377,7 +377,7 @@ function ResourcesTab({
         .from('unit-vault-materials')
         .getPublicUrl(filePath)
 
-      // 3. Post metadata JSON to the API route
+      // 3. Post lightweight metadata JSON to the API route (<1 KB)
       const response = await fetch('/api/admin/resources', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -409,7 +409,7 @@ function ResourcesTab({
       setUnitId(''); setUnitQuery(''); setTitle(''); setFile(null)
       setTimeout(() => { setUploadSuccess(false); setShowForm(false) }, 2000)
     } catch (err: any) {
-      setError(err.message || 'Upload failed. Check your storage bucket.')
+      setError(err.message || 'Upload failed. Check your storage bucket permissions.')
     } finally {
       setUploading(false)
     }
@@ -437,7 +437,7 @@ function ResourcesTab({
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-lg font-bold text-[#FFFFFF]">All resources</h2>
+          <h2 className="text-lg font-bold text-white">All resources</h2>
           <p className="text-sm text-slate-500 mt-0.5">
             {resources.length} resource{resources.length !== 1 ? 's' : ''} uploaded
           </p>
