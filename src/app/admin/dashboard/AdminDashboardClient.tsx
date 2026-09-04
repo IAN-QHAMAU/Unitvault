@@ -7,7 +7,6 @@ import {
   Loader2, CheckCircle, X, GraduationCap
 } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
-import { createClient } from '@/lib/supabase/client'
 import type { Resource, ResourceType, Unit } from '@/lib/supabase/types'
 
 interface AdminDashboardClientProps {
@@ -355,29 +354,37 @@ function ResourcesTab({
     setError('')
 
     try {
-      const supabase = createClient()
+      // Step 1: Request presigned S3 upload URL
+      const presignRes = await fetch('/api/admin/s3-upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          filename: file.name,
+          fileType: file.type || 'application/pdf',
+        }),
+      })
 
-      // 1. Upload file DIRECTLY from browser to Supabase Storage (bypasses Vercel API limits)
-      const ext = file.name.split('.').pop() || 'pdf'
-      const filePath = `${unitId}/${Date.now()}.${ext}`
-
-      const { error: uploadErr } = await supabase.storage
-        .from('unit-vault-materials')
-        .upload(filePath, file, {
-          contentType: file.type || 'application/pdf',
-          upsert: false,
-        })
-
-      if (uploadErr) {
-        throw new Error(`Storage upload failed: ${uploadErr.message}`)
+      if (!presignRes.ok) {
+        const presignErr = await presignRes.json()
+        throw new Error(presignErr.error || 'Failed to authorize upload target')
       }
 
-      // 2. Retrieve public URL
-      const { data: publicUrlData } = supabase.storage
-        .from('unit-vault-materials')
-        .getPublicUrl(filePath)
+      const { uploadUrl, publicUrl, filePath } = await presignRes.json()
 
-      // 3. Post lightweight metadata JSON to the API route (<1 KB)
+      // Step 2: Upload file binary DIRECTLY to S3 (Bypasses Vercel 4.5MB limit)
+      const uploadRes = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': file.type || 'application/pdf',
+        },
+        body: file,
+      })
+
+      if (!uploadRes.ok) {
+        throw new Error('Direct upload to S3 endpoint failed')
+      }
+
+      // Step 3: Save lightweight resource metadata in DB
       const response = await fetch('/api/admin/resources', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -385,7 +392,7 @@ function ResourcesTab({
           unitId,
           title: title.trim(),
           resourceType,
-          fileUrl: publicUrlData.publicUrl,
+          fileUrl: publicUrl,
           filePath,
         }),
       })
@@ -409,7 +416,7 @@ function ResourcesTab({
       setUnitId(''); setUnitQuery(''); setTitle(''); setFile(null)
       setTimeout(() => { setUploadSuccess(false); setShowForm(false) }, 2000)
     } catch (err: any) {
-      setError(err.message || 'Upload failed. Check your storage bucket permissions.')
+      setError(err.message || 'Upload failed. Check your connection or file settings.')
     } finally {
       setUploading(false)
     }
