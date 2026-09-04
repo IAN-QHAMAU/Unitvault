@@ -4,7 +4,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 // Initialize S3 Client targeting Supabase S3 Protocol
 const s3Client = new S3Client({
-  region: process.env.SUPABASE_S3_REGION!,
+  region: process.env.SUPABASE_S3_REGION || "us-east-1",
   endpoint: process.env.SUPABASE_S3_ENDPOINT!,
   credentials: {
     accessKeyId: process.env.SUPABASE_S3_ACCESS_KEY_ID!,
@@ -38,8 +38,11 @@ export async function POST(request: NextRequest) {
     // Generate a presigned URL valid for 5 minutes (300 seconds)
     const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 300 });
 
-    // Construct the public URL for retrieving the file after upload
-    const publicUrl = `${process.env.SUPABASE_S3_ENDPOINT}/${bucketName}/${filePath}`;
+    // Extract base project URL for clean public access
+    // Converts https://<project>.storage.supabase.co/storage/v1/s3 -> https://<project>.supabase.co
+    const endpointBase = process.env.SUPABASE_S3_ENDPOINT || "";
+    const projectRef = endpointBase.split(".")[0].replace("https://", "");
+    const publicUrl = `https://${projectRef}.supabase.co/storage/v1/object/public/${bucketName}/${filePath}`;
 
     return NextResponse.json({
       uploadUrl,

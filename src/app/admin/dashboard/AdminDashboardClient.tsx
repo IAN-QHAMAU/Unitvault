@@ -354,13 +354,15 @@ function ResourcesTab({
     setError('')
 
     try {
+      const fileType = file.type || 'application/pdf'
+
       // Step 1: Request presigned S3 upload URL
       const presignRes = await fetch('/api/admin/s3-upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           filename: file.name,
-          fileType: file.type || 'application/pdf',
+          fileType,
         }),
       })
 
@@ -371,20 +373,23 @@ function ResourcesTab({
 
       const { uploadUrl, publicUrl, filePath } = await presignRes.json()
 
-      // Step 2: Upload file binary DIRECTLY to S3 (Bypasses Vercel 4.5MB limit)
+      // Step 2: Direct binary PUT upload to S3 (Bypasses Vercel 4.5MB limit)
+      // Headers MUST match the exact ContentType sent to getSignedUrl
       const uploadRes = await fetch(uploadUrl, {
         method: 'PUT',
         headers: {
-          'Content-Type': file.type || 'application/pdf',
+          'Content-Type': fileType,
         },
         body: file,
       })
 
       if (!uploadRes.ok) {
-        throw new Error('Direct upload to S3 endpoint failed')
+        const errText = await uploadRes.text()
+        console.error('S3 Upload Error XML:', errText)
+        throw new Error('Direct upload to S3 endpoint failed. Check bucket permissions.')
       }
 
-      // Step 3: Save lightweight resource metadata in DB
+      // Step 3: Save resource metadata in DB
       const response = await fetch('/api/admin/resources', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
