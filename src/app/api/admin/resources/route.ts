@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
+import { createServerClient } from '@supabase/ssr'
 import { createAdminClient } from '@/lib/supabase/server'
 
 export const runtime = 'nodejs'
@@ -7,8 +8,31 @@ export const dynamic = 'force-dynamic'
 
 async function requireAdminRequest() {
   const cookieStore = await cookies()
+
+  // 1. Check legacy/password cookie
   const auth = cookieStore.get('uv_admin_auth')
-  return auth?.value === process.env.ADMIN_PASSWORD
+  if (auth?.value && auth.value === process.env.ADMIN_PASSWORD) {
+    return true
+  }
+
+  // 2. Check Supabase Auth session for user admin role
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+      },
+    }
+  )
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  return user?.app_metadata?.role === 'admin'
 }
 
 export async function POST(request: NextRequest) {
