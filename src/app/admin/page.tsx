@@ -1,10 +1,8 @@
 import { redirect } from 'next/navigation'
-import { cookies } from 'next/headers'
+import { isAdmin } from '@/lib/adminAuth'
 
 export default async function AdminPage() {
-  const cookieStore = await cookies()
-  const auth = cookieStore.get('uv_admin_auth')
-  if (auth?.value === process.env.ADMIN_PASSWORD) {
+  if (await isAdmin()) {
     redirect('/admin/dashboard')
   } else {
     redirect('/admin/login')

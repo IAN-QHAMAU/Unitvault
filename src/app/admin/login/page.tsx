@@ -1,13 +1,11 @@
 import { AdminLoginClient } from './AdminLoginClient'
 import { Shield } from 'lucide-react'
 import Link from 'next/link'
-import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { isAdmin } from '@/lib/adminAuth'
 
 export default async function AdminLoginPage() {
-  const cookieStore = await cookies()
-  const adminAuth = cookieStore.get('uv_admin_auth')
-  if (adminAuth?.value === process.env.ADMIN_PASSWORD) {
+  if (await isAdmin()) {
     redirect('/admin/dashboard')
   }
 
