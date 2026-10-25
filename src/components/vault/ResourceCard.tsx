@@ -1,7 +1,6 @@
-// @ts-nocheck
 'use client'
 
-import { FileText, BookOpen, Download, Bookmark, Trash2, Eye, X } from 'lucide-react'
+import { FileText, BookOpen, Download, Bookmark, Eye, X } from 'lucide-react'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { formatDate } from '@/lib/utils'
@@ -12,7 +11,8 @@ interface ResourceCardProps {
   resource: Resource
   user: User | null
   isSaved?: boolean
-  showDelete?: boolean
+  // Show the unit code and name, for lists that mix units (My Vault)
+  showUnit?: boolean
   onUnsave?: (resourceId: string) => void
   onAuthRequired?: () => void
 }
@@ -21,13 +21,14 @@ export function ResourceCard({
   resource,
   user,
   isSaved = false,
-  showDelete = false,
+  showUnit = false,
   onUnsave,
   onAuthRequired,
 }: ResourceCardProps) {
   const supabase = createClient()
   const [saved, setSaved] = useState(isSaved)
   const [loading, setLoading] = useState(false)
+  const [saveError, setSaveError] = useState('')
   const [previewing, setPreviewing] = useState(false)
   const isNotes = resource.resource_type === 'Notes'
 
@@ -37,19 +38,31 @@ export function ResourceCard({
       return
     }
     setLoading(true)
+    setSaveError('')
     if (saved) {
-      await supabase
+      const { error } = await supabase
         .from('saved_resources')
         .delete()
         .eq('user_id', user.id)
         .eq('resource_id', resource.id)
-      setSaved(false)
-      onUnsave?.(resource.id)
+      if (error) {
+        setSaveError("Couldn't remove it. Try again.")
+      } else {
+        setSaved(false)
+        onUnsave?.(resource.id)
+      }
     } else {
-      await supabase
+      // The hand-written Database type makes inserts resolve to `never` until
+      // it's regenerated with `supabase gen types`
+      const { error } = await supabase
         .from('saved_resources')
-        .insert({ user_id: user.id, resource_id: resource.id })
-      setSaved(true)
+        .insert({ user_id: user.id, resource_id: resource.id } as never)
+      // 23505: already saved, e.g. from another tab
+      if (error && error.code !== '23505') {
+        setSaveError("Couldn't save it. Try again.")
+      } else {
+        setSaved(true)
+      }
     }
     setLoading(false)
   }
@@ -77,30 +90,21 @@ export function ResourceCard({
             {resource.resource_type}
           </span>
 
-          {showDelete ? (
-            <form action={`/api/resources/${resource.id}`} method="POST">
-              <button
-                type="submit"
-                className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-red-400 hover:bg-red-50 hover:text-red-600 transition-all"
-                title="Delete resource"
-              >
-                <Trash2 size={15} />
-              </button>
-            </form>
-          ) : (
-            <button
-              onClick={handleToggleSave}
-              disabled={loading}
-              className={`p-1.5 rounded-lg transition-all ${
-                saved
-                  ? 'text-[#1E3A8A] bg-[#EFF6FF]'
-                  : 'text-slate-300 hover:text-[#1E3A8A] hover:bg-[#EFF6FF] opacity-0 group-hover:opacity-100'
-              }`}
-              title={saved ? 'Remove from vault' : 'Save to vault'}
-            >
-              <Bookmark size={16} fill={saved ? '#1E3A8A' : 'none'} />
-            </button>
-          )}
+          {/* Hover-to-reveal only where there is a mouse; phones always see it */}
+          <button
+            onClick={handleToggleSave}
+            disabled={loading}
+            className={`p-1.5 rounded-lg transition-all ${
+              saved
+                ? 'text-[#1E3A8A] bg-[#EFF6FF]'
+                : 'text-slate-400 hover:text-[#1E3A8A] hover:bg-[#EFF6FF] pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100 focus-visible:opacity-100'
+            }`}
+            title={saved ? 'Remove from vault' : 'Save to vault'}
+            aria-label={saved ? 'Remove from vault' : 'Save to vault'}
+            aria-pressed={saved}
+          >
+            <Bookmark size={16} fill={saved ? '#1E3A8A' : 'none'} />
+          </button>
         </div>
 
         {/* Content */}
@@ -108,23 +112,21 @@ export function ResourceCard({
           <h3 className="font-semibold text-[#0F172A] text-base leading-snug mb-1.5 line-clamp-2">
             {resource.title}
           </h3>
-          {resource.course && (
+          {showUnit && resource.unit && (
             <p className="text-[#64748B] text-sm font-medium">
-              {resource.course.code}
+              {resource.unit.code}
               <span className="text-slate-300 mx-1.5">•</span>
-              {resource.course.name}
+              {resource.unit.name}
             </p>
+          )}
+          {saveError && (
+            <p className="text-xs text-red-600 mt-1.5" role="alert">{saveError}</p>
           )}
         </div>
 
         {/* Footer */}
         <div className="border-t border-slate-100 pt-4 flex items-center justify-between gap-2">
-          <div>
-            {resource.uploader_name && (
-              <div className="text-xs text-[#64748B] font-medium">{resource.uploader_name}</div>
-            )}
-            <div className="text-xs text-slate-400 mt-0.5">{formatDate(resource.created_at)}</div>
-          </div>
+          <div className="text-xs text-slate-400">{formatDate(resource.created_at)}</div>
 
           <div className="flex items-center gap-2">
             {/* Preview */}
@@ -182,6 +184,7 @@ export function ResourceCard({
               <button
                 onClick={() => setPreviewing(false)}
                 className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors"
+                aria-label="Close preview"
               >
                 <X size={20} />
               </button>

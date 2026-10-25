@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Bookmark, BookOpen, Inbox } from 'lucide-react'
+import { Bookmark, BookOpen } from 'lucide-react'
 import Link from 'next/link'
 import { ResourceCard } from '@/components/vault/ResourceCard'
 import type { User } from '@supabase/supabase-js'
@@ -69,6 +69,7 @@ export function DashboardClient({ user, savedResources }: DashboardClientProps) 
               resource={r}
               user={user}
               isSaved={true}
+              showUnit
               onUnsave={handleUnsave}
             />
           ))}
